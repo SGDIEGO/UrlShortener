@@ -8,19 +8,44 @@
 <body>
     <h1>diego's shortener</h1>
     
-    <div>
-        <input type="text" id="original" value="" name="original">
-        <input type="button" id="submit" value="submit">
-    </div>
+    <main class="main">
+        <div class="menu">
+            <div>
+                <input type="text" id="original" value="" name="original">
+                <input type="button" id="submit" value="submit">
+            </div>
+        
+            <div>
+                <input type="button" id="all" value="All url">
+            </div>
+        
+        </div>
+    
+        <div class="url">
+        </div>
+    
+    </main>
+
+    <style>
+        .main {
+            display: grid;
+        }
+        .menu {
+            display: flex;
+            gap: 2rem;
+        }
+        .url {
+            display: grid;
+        }
+    </style>
 
     <script>
+        const server = "http://localhost:3000/"
         let submit = document.querySelector("#submit")
         submit.addEventListener("click", (e) => {
             let original = document.querySelector("#original").value
-            let body_post = `{"original":"${original}"}`
-            console.log(body_post);
 
-            fetch("http://localhost:3000/", {
+            fetch(server, {
                 method:'POST',
                 headers: {
                     "Content-type": "application/json",
@@ -30,10 +55,48 @@
                     "original":\"${original}\"
                     }`
             })
-            .then(res => res.text())
-            .then(data => console.log(data))
-            .catch(err => console.log("Error: ", err))
+            .then(res => {
+                alert(res.status)
+                if (!res.ok) 
+                    throw new Error("Error request");
+
+                return res.text()
+            })
+            .catch(err => {
+                console.log(err);
+                alert("Error: ", err)
+            })
         })
-    </script>
+
+        let all = document.querySelector("#all")
+        all.addEventListener("click", e => {
+            let get_urls = async () => {
+                
+                let res = await fetch(server+"url", {
+                    method: 'GET',
+                    headers: {
+                        "Access-Control-Allow-Origin":"*"
+                    }
+                })
+                .then(r => r.json())
+                .catch(e => {alert(e); return null})
+                
+                return await res
+            }
+
+            let urls = get_urls()
+            urls.
+            then(data => {
+                let url = document.querySelector(".url")
+                
+                // Remove childs
+                while (url.firstChild) url.removeChild(url.firstChild)
+
+                data.forEach(u => {
+                    url.innerHTML += `<a href="${u}">url</a>`
+                })
+            })
+        })
+</script>
 </body>
 </html>

@@ -35,8 +35,8 @@ func loadEnv(c *config) {
 
 // Error Data
 type ErrorResponse struct {
-	Message string
-	Code    int
+	Message string `json:"message"`
+	Code    int    `json:"code"`
 }
 
 // Url response
@@ -88,7 +88,7 @@ func main() {
 
 		// New id
 		id := rand.Intn(1000)
-		created := fmt.Sprintf("localhost:3000/%d", id)
+		created := fmt.Sprintf("localhost:3000/url/%d", id)
 
 		_, err := db_.Exec("insert into url values(?,?,?)", id, m.Original, created)
 		if err != nil {
@@ -100,8 +100,8 @@ func main() {
 		w.Write([]byte(m.Original))
 	})
 
-	server.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strings.CutPrefix(r.URL.String(), "/") // Get id
+	server.Get("/url/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id, _ := strings.CutPrefix(r.URL.String(), "/url/") // Get id
 		query := fmt.Sprintf("select original from url where id=%s", id)
 
 		res, err := db_.Query(query)
@@ -113,7 +113,7 @@ func main() {
 		var url string
 		for res.Next() {
 			if err := res.Scan(&url); err != nil {
-				fmt.Printf("Error: %s", err.Error())
+				log.Printf("Error: %s", err.Error())
 				return
 			}
 		}
@@ -131,6 +131,29 @@ func main() {
 		// Redirect
 		http.Redirect(w, r, url, http.StatusSeeOther)
 		//w.Write([]byte(url))
+	})
+
+	server.Get("/url", func(w http.ResponseWriter, r *http.Request) {
+		res, err := db_.Query("select created from url")
+		if err != nil {
+			log.Printf("Error: %s", err.Error())
+			return
+		}
+
+		var urls []string
+		var url string
+		for res.Next() {
+
+			if err := res.Scan(&url); err != nil {
+				log.Printf("Error: %s", err.Error())
+				return
+			}
+
+			urls = append(urls, url)
+		}
+
+		w.Header().Add("Content-type", "application/json")
+		json.NewEncoder(w).Encode(urls)
 	})
 
 	// Run server
