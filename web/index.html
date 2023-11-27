@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>diego's shortener</h1>
+    
+    <div>
+        <input type="text" id="original" value="" name="original">
+        <input type="button" id="submit" value="submit">
+    </div>
+
+    <script>
+        let submit = document.querySelector("#submit")
+        submit.addEventListener("click", (e) => {
+            let original = document.querySelector("#original").value
+            let body_post = `{"original":"${original}"}`
+            console.log(body_post);
+
+            fetch("http://localhost:3000/", {
+                method:'POST',
+                headers: {
+                    "Content-type": "application/json",
+                    "Access-Control-Allow-Origin":"*"
+                },
+                body: `{
+                    "original":\"${original}\"
+                    }`
+            })
+            .then(res => res.text())
+            .then(data => console.log(data))
+            .catch(err => console.log("Error: ", err))
+        })
+    </script>
+</body>
+</html>
